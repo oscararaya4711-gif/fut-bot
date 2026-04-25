@@ -167,7 +167,7 @@ def revisar_tarjetas_rojas(partidos):
                     f"{tipo}\n\n"
                     f"🏆 {nombre_liga} ({pais})\n"
                     f"⚽ <b>{equipo_local} {marcador} {equipo_visita}</b>\n"
-                    f"⏱️ Minuto: {minuto_evento}'\n\n"
+                    f"⏱️ Minuto: {minuto_evento}'\n"
                     f"👤 Jugador: <b>{jugador}</b>\n"
                     f"🏃 Equipo: {equipo}"
                 )
