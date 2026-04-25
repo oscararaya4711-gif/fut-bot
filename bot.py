@@ -105,7 +105,6 @@ LIGAS = [
 tarjetas_notificadas = set()
 
 def enviar_telegram(mensaje):
-    """Envía un mensaje a tu Telegram"""
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     try:
         requests.post(url, json={
@@ -117,40 +116,47 @@ def enviar_telegram(mensaje):
         print(f"Error enviando mensaje: {e}")
 
 def obtener_partidos_en_vivo():
-    """Consulta los partidos que están jugándose ahora"""
     url = "https://v3.football.api-sports.io/fixtures"
     headers = {"x-apisports-key": API_FOOTBALL_KEY}
     params = {"live": "all"}
     r = requests.get(url, headers=headers, params=params)
-    datos = r.json()
-    return datos.get("response", [])
+    return r.json().get("response", [])
 
 def revisar_tarjetas_rojas(partidos):
-    """Busca tarjetas rojas nuevas y notifica"""
     for partido in partidos:
         liga_id = partido["league"]["id"]
         if liga_id not in LIGAS:
             continue
 
-        fixture_id = partido["fixture"]["id"]
-        equipo_local = partido["teams"]["home"]["name"]
-        equipo_visita = partido["teams"]["away"]["name"]
-        nombre_liga = partido["league"]["name"]
-        pais = partido["league"]["country"]
+        fixture_id  = partido["fixture"]["id"]
+        equipo_local   = partido["teams"]["home"]["name"]
+        equipo_visita  = partido["teams"]["away"]["name"]
+        nombre_liga    = partido["league"]["name"]
+        pais           = partido["league"]["country"]
+
+        # ⬇️ Resultado actual
+        goles_local   = partido["goals"]["home"]
+        goles_visita  = partido["goals"]["away"]
+        if goles_local  is None: goles_local  = 0
+        if goles_visita is None: goles_visita = 0
+        marcador = f"{goles_local} - {goles_visita}"
+
+        # Minuto actual del partido
+        minuto_actual = partido["fixture"]["status"]["elapsed"] or "?"
 
         eventos = partido.get("events", [])
         for evento in eventos:
-            es_tarjeta_roja = (
+            es_roja = (
                 evento.get("type") == "Card" and
                 evento.get("detail") in ["Red Card", "Second Yellow card"]
             )
-            if not es_tarjeta_roja:
+            if not es_roja:
                 continue
 
-            minuto = evento["time"]["elapsed"]
-            jugador = evento["player"]["name"] or "Desconocido"
-            equipo = evento["team"]["name"]
-            clave = f"{fixture_id}-{jugador}-{minuto}"
+            minuto_evento = evento["time"]["elapsed"]
+            jugador       = evento["player"]["name"] or "Desconocido"
+            equipo        = evento["team"]["name"]
+            clave         = f"{fixture_id}-{jugador}-{minuto_evento}"
 
             if clave not in tarjetas_notificadas:
                 tarjetas_notificadas.add(clave)
@@ -160,13 +166,13 @@ def revisar_tarjetas_rojas(partidos):
                 mensaje = (
                     f"{tipo}\n\n"
                     f"🏆 {nombre_liga} ({pais})\n"
-                    f"⚽ {equipo_local} vs {equipo_visita}\n"
+                    f"⚽ <b>{equipo_local} {marcador} {equipo_visita}</b>\n"
+                    f"⏱️ Minuto: {minuto_evento}'\n\n"
                     f"👤 Jugador: <b>{jugador}</b>\n"
-                    f"🏃 Equipo: {equipo}\n"
-                    f"⏱️ Minuto: {minuto}'"
+                    f"🏃 Equipo: {equipo}"
                 )
                 enviar_telegram(mensaje)
-                print(f"✅ Notificado: {jugador} ({equipo}) min {minuto}")
+                print(f"✅ Notificado: {jugador} ({equipo}) min {minuto_evento} | {marcador}")
 
 def main():
     print("🤖 Bot iniciado. Monitoreando partidos...")
@@ -174,7 +180,7 @@ def main():
 
     while True:
         try:
-            print(f"\n🔍 Revisando partidos en vivo...")
+            print("🔍 Revisando partidos en vivo...")
             partidos = obtener_partidos_en_vivo()
             print(f"   Partidos encontrados: {len(partidos)}")
             revisar_tarjetas_rojas(partidos)
