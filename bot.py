@@ -4,19 +4,102 @@ import time
 # ==========================================
 # CONFIGURACIÓN — COMPLETA ESTOS 3 VALORES
 # ==========================================
-TELEGRAM_TOKEN = "8705951702:AAFbjPPtAtnPP2cHQd-K97fWui05F2SKRWs"
-CHAT_ID = "811308319"
-API_FOOTBALL_KEY = "57959cae9503fbf6f0cdef93dbd0cb5c"
+import os
+
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
+CHAT_ID = os.environ.get("CHAT_ID")
+API_FOOTBALL_KEY = os.environ.get("API_FOOTBALL_KEY")
 
 # Ligas a monitorear (puedes agregar o quitar)
 LIGAS = [
-    39,   # Premier League
+        # ======= EUROPA - PRIMER ORDEN =======
+    39,   # Premier League (Inglaterra)
     140,  # La Liga (España)
     135,  # Serie A (Italia)
     78,   # Bundesliga (Alemania)
     61,   # Ligue 1 (Francia)
-    2,    # Champions League
-    128,  # Liga Chilena (Primera División)
+    2,    # UEFA Champions League
+    3,    # UEFA Europa League
+    848,  # UEFA Conference League
+
+    # ======= EUROPA - SEGUNDO ORDEN =======
+    40,   # Championship (Inglaterra 2ª)
+    141,  # Segunda División (España)
+    136,  # Serie B (Italia)
+    79,   # 2. Bundesliga (Alemania)
+    62,   # Ligue 2 (Francia)
+    88,   # Eredivisie (Holanda 1ª)
+    89,   # Eerste Divisie (Holanda 2ª)
+    144,  # Jupiler Pro League (Bélgica)
+    207,  # Super League (Suiza)
+    208,  # Challenge League (Suiza 2ª)
+    113,  # Allsvenskan (Suecia)
+    114,  # Superettan (Suecia 2ª)
+    103,  # Eliteserien (Noruega)
+    104,  # Primera División (Noruega 2ª)
+    119,  # Superliga (Dinamarca)
+    120,  # 1st Division (Dinamarca 2ª)
+    106,  # Ekstraklasa (Polonia)
+    107,  # I Liga (Polonia 2ª)
+    179,  # Premiership (Escocia)
+    180,  # Championship (Escocia 2ª)
+    271,  # Fortuna Liga (República Checa)
+    345,  # HNL (Croacia)
+    218,  # Super Liga (Serbia)
+    286,  # Süper Lig (Turquía)
+    333,  # Premier League (Austria)
+    197,  # Super League (Grecia)
+    235,  # Premier Liga (Rusia)
+    373,  # Nemzeti Bajnokság (Hungría)
+    382,  # Fortuna Liga (Eslovaquia)
+    210,  # Primeira Liga (Portugal)
+    211,  # Liga Portugal 2 (Portugal 2ª)
+
+    # ======= SUDAMÉRICA =======
+    128,  # Primera División (Chile)
+    129,  # Primera B (Chile 2ª)
+    71,   # Brasileirao Serie A (Brasil)
+    72,   # Brasileirao Serie B (Brasil 2ª)
+    239,  # Liga Profesional (Argentina)
+    240,  # Primera Nacional (Argentina 2ª)
+    11,   # Copa Libertadores
+    13,   # Copa Sudamericana
+    242,  # Primera División (Uruguay)
+    281,  # Primera División (Paraguay)
+    300,  # Primera División (Bolivia)
+    266,  # Liga 1 (Perú)
+    314,  # Serie A (Ecuador)
+    332,  # Primera División (Colombia)
+    253,  # Primera División (Venezuela)
+
+    # ======= NORTEAMÉRICA Y CENTROAMÉRICA =======
+    253,  # MLS (Estados Unidos)
+    262,  # Liga MX (México)
+    263,  # Liga de Expansión (México 2ª)
+    164,  # Canadian Premier League (Canadá)
+    348,  # Liga Nacional (Honduras)
+    286,  # Liga Mayor (Guatemala)
+    322,  # Primera División (Costa Rica)
+    358,  # LPF (Panamá)
+    369,  # Primera División (El Salvador)
+
+    # ======= ASIA =======
+    169,  # AFC Champions League
+    292,  # Saudi Pro League (Arabia Saudita)
+    307,  # Qatar Stars League (Qatar)
+    188,  # Pro League (Emiratos Árabes)
+    323,  # Persian Gulf Pro League (Irán)
+    268,  # J1 League (Japón)
+    269,  # J2 League (Japón 2ª)
+    292,  # K League 1 (Corea del Sur)
+    293,  # K League 2 (Corea del Sur 2ª)
+    154,  # Chinese Super League (China)
+    296,  # Indian Super League (India)
+    334,  # Thailand League 1 (Tailandia)
+
+    # ======= OCEANÍA =======
+    188,  # A-League (Australia)
+    490,  # New Zealand National League
 ]
 
 tarjetas_notificadas = set()
