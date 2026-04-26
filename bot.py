@@ -12,7 +12,7 @@ ADMIN_CHAT_ID = os.environ.get("CHAT_ID")
 API_FOOTBALL_KEY = os.environ.get("API_FOOTBALL_KEY")
 
 TU_USUARIO_TELEGRAM = "@oaraya555" 
-LIMITE_GRATUITO = 5  # Notificaciones diarias para usuarios gratuitos
+LIMITE_GRATUITO = 10  # Notificaciones diarias para usuarios gratuitos
 
 LIGAS = [
 
@@ -186,28 +186,46 @@ tarjetas_notificadas = set()
 ultimo_update_id = 0
 
 # ==========================================
-# BASE DE DATOS
+# BASE DE DATOS - MONGODB
 # ==========================================
-ARCHIVO_USUARIOS = "usuarios.json"
+from pymongo import MongoClient
+
+MONGO_URL = os.environ.get("MONGO_URL")
+cliente_mongo = MongoClient(MONGO_URL)
+db = cliente_mongo["botfutbol"]
+coleccion_usuarios = db["usuarios"]
 
 def cargar_usuarios():
-    try:
-        with open(ARCHIVO_USUARIOS, "r") as f:
-            return json.load(f)
-    except:
-        return {}
+    """Carga todos los usuarios desde MongoDB"""
+    usuarios = {}
+    for u in coleccion_usuarios.find():
+        chat_id = u["chat_id"]
+        u.pop("_id", None)
+        usuarios[chat_id] = u
+    return usuarios
+
+def guardar_usuario(chat_id, datos):
+    """Guarda o actualiza un usuario en MongoDB"""
+    coleccion_usuarios.update_one(
+        {"chat_id": chat_id},
+        {"$set": datos},
+        upsert=True
+    )
 
 def guardar_usuarios(usuarios):
-    with open(ARCHIVO_USUARIOS, "w") as f:
-        json.dump(usuarios, f, indent=2)
+    """Guarda todos los usuarios (compatibilidad)"""
+    for chat_id, datos in usuarios.items():
+        datos["chat_id"] = chat_id
+        guardar_usuario(chat_id, datos)
 
 def registrar_usuario(chat_id, nombre, username):
-    usuarios = cargar_usuarios()
     chat_id = str(chat_id)
     hoy = datetime.now().strftime("%Y-%m-%d")
+    existe = coleccion_usuarios.find_one({"chat_id": chat_id})
 
-    if chat_id not in usuarios:
-        usuarios[chat_id] = {
+    if not existe:
+        datos = {
+            "chat_id": chat_id,
             "nombre": nombre,
             "username": username or "sin_username",
             "fecha_registro": datetime.now().strftime("%Y-%m-%d %H:%M"),
@@ -219,7 +237,7 @@ def registrar_usuario(chat_id, nombre, username):
             "ultima_actividad": datetime.now().strftime("%Y-%m-%d %H:%M"),
             "fecha_conteo": hoy,
         }
-        guardar_usuarios(usuarios)
+        guardar_usuario(chat_id, datos)
         enviar_mensaje(
             ADMIN_CHAT_ID,
             f"👤 <b>Nuevo usuario registrado</b>\n\n"
@@ -230,11 +248,15 @@ def registrar_usuario(chat_id, nombre, username):
         )
         return True
     else:
-        usuarios[chat_id]["ultima_actividad"] = datetime.now().strftime("%Y-%m-%d %H:%M")
-        usuarios[chat_id]["nombre"] = nombre
-        guardar_usuarios(usuarios)
+        coleccion_usuarios.update_one(
+            {"chat_id": chat_id},
+            {"$set": {
+                "ultima_actividad": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                "nombre": nombre
+            }}
+        )
         return False
-
+            
 def resetear_conteo_si_es_nuevo_dia(chat_id, usuarios):
     """Resetea el contador diario si cambió el día"""
     hoy = datetime.now().strftime("%Y-%m-%d")
