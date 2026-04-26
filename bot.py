@@ -361,7 +361,6 @@ def manejar_comando(chat_id, texto, nombre, username):
             enviar_mensaje(chat_id, "❌ Usuario no encontrado.")
 
     elif texto.startswith("/agregar ") and es_admin(chat_id):
-        # ✅ Indentación corregida — todo dentro del elif
         partes = texto.split(" ")
         if len(partes) < 3:
             enviar_mensaje(chat_id,
@@ -403,7 +402,7 @@ def manejar_comando(chat_id, texto, nombre, username):
                     f"Ya estás recibiendo alertas nuevamente.\n"
                     f"Escribe /estado para ver tu plan."
                 )
-
+                
     elif texto.startswith("/mensaje ") and es_admin(chat_id):
         contenido = texto.replace("/mensaje ", "", 1)
         todos = list(col.find())
