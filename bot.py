@@ -15,16 +15,171 @@ TU_USUARIO_TELEGRAM = "@oaraya555"
 LIMITE_GRATUITO = 5  # Notificaciones diarias para usuarios gratuitos
 
 LIGAS = [
-    39, 140, 135, 78, 61, 2, 3, 848,
-    40, 141, 136, 79, 62, 88, 89, 144,
-    207, 208, 113, 114, 103, 104, 119,
-    120, 106, 107, 179, 180, 271, 345,
-    218, 286, 333, 197, 235, 373, 382,
-    210, 211, 128, 129, 71, 72, 239, 240,
-    11, 13, 242, 281, 300, 266, 314, 332,
-    253, 262, 263, 164, 348, 322,
-    169, 292, 307, 188, 323, 268, 269,
-    154, 296, 334, 490,
+
+    # ======= UEFA - COMPETICIONES EUROPEAS =======
+    2,    # Champions League
+    3,    # Europa League
+    848,  # Conference League
+
+    # ======= INGLATERRA - 5 DIVISIONES =======
+    39,   # Premier League (1ª)
+    40,   # Championship (2ª)
+    41,   # League One (3ª)
+    42,   # League Two (4ª)
+    43,   # National League (5ª)
+
+    # ======= ESPAÑA =======
+    140,  # La Liga (1ª)
+    141,  # Segunda División (2ª)
+    142,  # Segunda Federación (3ª)
+
+    # ======= ALEMANIA =======
+    78,   # Bundesliga (1ª)
+    79,   # 2. Bundesliga (2ª)
+    80,   # 3. Liga (3ª)
+
+    # ======= ITALIA =======
+    135,  # Serie A (1ª)
+    136,  # Serie B (2ª)
+    137,  # Serie C (3ª)
+
+    # ======= FRANCIA =======
+    61,   # Ligue 1 (1ª)
+    62,   # Ligue 2 (2ª)
+    63,   # National (3ª)
+
+    # ======= PORTUGAL =======
+    94,   # Primeira Liga (1ª)
+    95,   # Liga Portugal 2 (2ª)
+    96,   # Liga 3 (3ª)
+
+    # ======= HOLANDA =======
+    88,   # Eredivisie (1ª)
+    89,   # Eerste Divisie (2ª)
+    90,   # Derde Divisie (3ª)
+
+    # ======= BÉLGICA =======
+    144,  # Jupiler Pro League (1ª)
+    145,  # First Amateur (2ª)
+
+    # ======= SUIZA =======
+    207,  # Super League (1ª)
+    208,  # Challenge League (2ª)
+    209,  # Promotion League (3ª)
+
+    # ======= AUSTRIA =======
+    116,  # Bundesliga (1ª)
+    117,  # 2. Liga (2ª)
+
+    # ======= SUECIA =======
+    113,  # Allsvenskan (1ª)
+    114,  # Superettan (2ª)
+    115,  # Division 1 (3ª)
+
+    # ======= NORUEGA =======
+    103,  # Eliteserien (1ª)
+    104,  # Primera División (2ª)
+    105,  # Segunda División (3ª)
+
+    # ======= DINAMARCA =======
+    119,  # Superliga (1ª)
+    120,  # 1st Division (2ª)
+    121,  # 2nd Division (3ª)
+
+    # ======= ESCOCIA =======
+    179,  # Premiership (1ª)
+    180,  # Championship (2ª)
+    181,  # League One (3ª)
+
+    # ======= POLONIA =======
+    106,  # Ekstraklasa (1ª)
+    107,  # I Liga (2ª)
+    108,  # II Liga (3ª)
+
+    # ======= TURQUÍA =======
+    203,  # Süper Lig (1ª)
+    204,  # TFF First League (2ª)
+    205,  # TFF Second League (3ª)
+
+    # ======= GRECIA =======
+    197,  # Super League (1ª)
+    198,  # Super League 2 (2ª)
+
+    # ======= RUSIA =======
+    235,  # Premier Liga (1ª)
+    236,  # FNL (2ª)
+
+    # ======= CROACIA =======
+    210,  # HNL (1ª)
+    211,  # Prva NL (2ª)
+
+    # ======= SERBIA =======
+    286,  # Super Liga (1ª)
+    287,  # First League (2ª)
+
+    # ======= REPÚBLICA CHECA =======
+    345,  # Czech Liga (1ª)
+    346,  # FNL (2ª)
+
+    # ======= HUNGRÍA =======
+    373,  # OTP Bank Liga (1ª)
+    374,  # Merkantil Bank Liga (2ª)
+
+    # ======= ESLOVAQUIA =======
+    382,  # Fortuna Liga (1ª)
+    383,  # Segunda División (2ª)
+
+    # ======= RUMANIA =======
+    283,  # Liga 1 (1ª)
+    284,  # Liga 2 (2ª)
+
+    # ======= UCRANIA =======
+    333,  # Premier League (1ª)
+    334,  # Persha Liga (2ª)
+
+    # ======= SUDAMÉRICA =======
+    11,   # Copa Libertadores
+    13,   # Copa Sudamericana
+    128,  # Primera División Chile (1ª)
+    129,  # Primera B Chile (2ª)
+    130,  # Segunda División Chile (3ª)
+    71,   # Brasileirao Serie A (1ª)
+    72,   # Brasileirao Serie B (2ª)
+    73,   # Brasileirao Serie C (3ª)
+    239,  # Liga Profesional Argentina (1ª)
+    240,  # Primera Nacional Argentina (2ª)
+    242,  # Primera División Uruguay (1ª)
+    243,  # Segunda División Uruguay (2ª)
+    281,  # Primera División Paraguay (1ª)
+    282,  # División Intermedia Paraguay (2ª)
+    266,  # Liga 1 Perú (1ª)
+    267,  # Liga 2 Perú (2ª)
+    314,  # Serie A Ecuador (1ª)
+    315,  # Serie B Ecuador (2ª)
+    332,  # Primera A Colombia (1ª)
+    334,  # Primera B Colombia (2ª)
+    300,  # División Profesional Bolivia (1ª)
+
+    # ======= NORTEAMÉRICA =======
+    253,  # MLS (1ª)
+    254,  # USL Championship (2ª)
+    262,  # Liga MX (1ª)
+    263,  # Liga de Expansión MX (2ª)
+    164,  # Canadian Premier League
+
+    # ======= ASIA =======
+    169,  # AFC Champions League
+    292,  # Saudi Pro League
+    307,  # Qatar Stars League
+    268,  # J1 League Japón (1ª)
+    269,  # J2 League Japón (2ª)
+    270,  # J3 League Japón (3ª)
+    293,  # K League 1 Corea (1ª)
+    294,  # K League 2 Corea (2ª)
+    154,  # Chinese Super League
+
+    # ======= OCEANÍA =======
+    188,  # A-League Australia
 ]
 
 tarjetas_notificadas = set()
@@ -380,31 +535,101 @@ def revisar_tarjetas_rojas(partidos):
         marcador      = f"{goles_local} - {goles_visita}"
 
         for evento in partido.get("events", []):
-            es_roja = (
-                evento.get("type") == "Card" and
-                evento.get("detail") in ["Red Card", "Second Yellow card"]
-            )
-            if not es_roja:
+            tipo_evento  = evento.get("type", "")
+            detalle      = evento.get("detail", "")
+            minuto       = evento["time"]["elapsed"]
+            jugador      = evento["player"]["name"] or "Desconocido"
+            equipo       = evento["team"]["name"]
+            clave        = f"{fixture_id}-{tipo_evento}-{detalle}-{jugador}-{minuto}"
+
+            if clave in tarjetas_notificadas:
                 continue
 
-            minuto  = evento["time"]["elapsed"]
-            jugador = evento["player"]["name"] or "Desconocido"
-            equipo  = evento["team"]["name"]
-            clave   = f"{fixture_id}-{jugador}-{minuto}"
+            mensaje = None
 
-            if clave not in tarjetas_notificadas:
+            # --- TARJETA ROJA ---
+            if tipo_evento == "Card" and detalle == "Red Card":
                 tarjetas_notificadas.add(clave)
-                tipo = "🟥 TARJETA ROJA" if evento["detail"] == "Red Card" else "🟨🟥 SEGUNDA AMARILLA"
                 mensaje = (
-                    f"{tipo}\n\n"
+                    f"🟥 TARJETA ROJA\n\n"
                     f"🏆 {nombre_liga} ({pais})\n"
                     f"⚽ <b>{equipo_local} {marcador} {equipo_visita}</b>\n"
                     f"⏱️ Minuto: {minuto}'\n\n"
                     f"👤 Jugador: <b>{jugador}</b>\n"
                     f"🏃 Equipo: {equipo}"
                 )
+
+            # --- SEGUNDA AMARILLA ---
+            elif tipo_evento == "Card" and detalle == "Second Yellow card":
+                tarjetas_notificadas.add(clave)
+                mensaje = (
+                    f"🟨🟥 SEGUNDA AMARILLA\n\n"
+                    f"🏆 {nombre_liga} ({pais})\n"
+                    f"⚽ <b>{equipo_local} {marcador} {equipo_visita}</b>\n"
+                    f"⏱️ Minuto: {minuto}'\n\n"
+                    f"👤 Jugador: <b>{jugador}</b>\n"
+                    f"🏃 Equipo: {equipo}"
+                )
+
+            # --- GOL ANULADO POR VAR ---
+            elif tipo_evento == "Var" and detalle in [
+                "Goal cancelled",
+                "Goal Disallowed - offside",
+                "Goal Disallowed - foul",
+                "Goal Disallowed - handball",
+            ]:
+                tarjetas_notificadas.add(clave)
+                razon = {
+                    "Goal cancelled": "razón no especificada",
+                    "Goal Disallowed - offside": "fuera de juego",
+                    "Goal Disallowed - foul": "falta previa",
+                    "Goal Disallowed - handball": "mano",
+                }.get(detalle, detalle)
+
+                mensaje = (
+                    f"🚫 GOL ANULADO POR VAR\n\n"
+                    f"🏆 {nombre_liga} ({pais})\n"
+                    f"⚽ <b>{equipo_local} {marcador} {equipo_visita}</b>\n"
+                    f"⏱️ Minuto: {minuto}'\n\n"
+                    f"👤 Jugador: <b>{jugador}</b>\n"
+                    f"🏃 Equipo: {equipo}\n"
+                    f"📋 Motivo: {razon}"
+                )
+
+            # --- TARJETA ROJA REVISADA POR VAR ---
+            elif tipo_evento == "Var" and detalle in [
+                "Red card upgrade",
+                "Card upgrade",
+            ]:
+                tarjetas_notificadas.add(clave)
+                mensaje = (
+                    f"📺 VAR - TARJETA ROJA\n\n"
+                    f"🏆 {nombre_liga} ({pais})\n"
+                    f"⚽ <b>{equipo_local} {marcador} {equipo_visita}</b>\n"
+                    f"⏱️ Minuto: {minuto}'\n\n"
+                    f"👤 Jugador: <b>{jugador}</b>\n"
+                    f"🏃 Equipo: {equipo}\n"
+                    f"📋 Amarilla cambiada a roja por VAR"
+                )
+
+            # --- PENALTI REVISADO POR VAR ---
+            elif tipo_evento == "Var" and detalle in [
+                "Penalty confirmed",
+                "Penalty cancelled",
+            ]:
+                tarjetas_notificadas.add(clave)
+                resultado = "✅ CONFIRMADO" if detalle == "Penalty confirmed" else "❌ ANULADO"
+                mensaje = (
+                    f"📺 VAR - PENALTI {resultado}\n\n"
+                    f"🏆 {nombre_liga} ({pais})\n"
+                    f"⚽ <b>{equipo_local} {marcador} {equipo_visita}</b>\n"
+                    f"⏱️ Minuto: {minuto}'\n\n"
+                    f"🏃 Equipo: {equipo}"
+                )
+
+            if mensaje:
                 notificar_todos(mensaje)
-                print(f"✅ {jugador} ({equipo}) min {minuto} | {marcador}")
+                print(f"✅ Notificado: {tipo_evento} - {detalle} | {equipo} min {minuto}")
 
 # ==========================================
 # MAIN
