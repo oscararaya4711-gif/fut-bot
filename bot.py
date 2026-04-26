@@ -102,14 +102,39 @@ cliente_mongo = MongoClient(MONGO_URL)
 db = cliente_mongo["botfutbol"]
 col = db["usuarios"]
 
-def cargar_usuarios():
-    usuarios = {}
-    for u in col.find():
-        chat_id = u["chat_id"]
-        u.pop("_id", None)
-        usuarios[chat_id] = u
-    return usuarios
+# ==========================================
+# TELEGRAM - FUNCIONES BASE
+# ==========================================
+def enviar_mensaje(chat_id, mensaje):
+    """Envía un mensaje de texto simple"""
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+    try:
+        requests.post(url, json={
+            "chat_id": chat_id,
+            "text": mensaje,
+            "parse_mode": "HTML"
+        })
+    except Exception as e:
+        print(f"Error enviando mensaje: {e}")
 
+def enviar_mensaje_con_botones(chat_id, mensaje, botones):
+    """Envía un mensaje con botones inline"""
+    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+    try:
+        requests.post(url, json={
+            "chat_id": chat_id,
+            "text": mensaje,
+            "parse_mode": "HTML",
+            "reply_markup": {
+                "inline_keyboard": botones
+            }
+        })
+    except Exception as e:
+        print(f"Error enviando mensaje con botones: {e}")
+
+# ==========================================
+# BASE DE DATOS - FUNCIONES
+# ==========================================
 def guardar_usuario(chat_id, datos):
     datos["chat_id"] = str(chat_id)
     col.update_one({"chat_id": str(chat_id)}, {"$set": datos}, upsert=True)
@@ -137,14 +162,16 @@ def registrar_usuario(chat_id, nombre, username):
             "fecha_conteo": hoy,
         }
         guardar_usuario(chat_id, datos)
-        enviar_mensaje(
-            ADMIN_CHAT_ID,
-            f"👤 <b>Nuevo usuario registrado</b>\n\n"
-            f"Nombre: {nombre}\n"
-            f"Username: @{username or 'sin_username'}\n"
-            f"ID: {chat_id}\n"
-            f"Fecha: {datetime.now().strftime('%Y-%m-%d %H:%M')}"
-        )
+        # Solo avisar al admin si el nuevo usuario NO es el admin
+        if chat_id != str(ADMIN_CHAT_ID):
+            enviar_mensaje(
+                ADMIN_CHAT_ID,
+                f"👤 <b>Nuevo usuario registrado</b>\n\n"
+                f"Nombre: {nombre}\n"
+                f"Username: @{username or 'sin_username'}\n"
+                f"ID: {chat_id}\n"
+                f"Fecha: {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+            )
         return True
     else:
         col.update_one({"chat_id": chat_id}, {"$set": {
@@ -166,19 +193,8 @@ def es_admin(chat_id):
     return str(chat_id) == str(ADMIN_CHAT_ID)
 
 # ==========================================
-# TELEGRAM
+# NOTIFICACIONES
 # ==========================================
-def enviar_mensaje(chat_id, mensaje):
-    url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
-    try:
-        requests.post(url, json={
-            "chat_id": chat_id,
-            "text": mensaje,
-            "parse_mode": "HTML"
-        })
-    except Exception as e:
-        print(f"Error enviando mensaje: {e}")
-
 def notificar_todos(mensaje):
     usuarios = col.find({"activo": True, "pausado": False})
     for u in usuarios:
@@ -202,17 +218,17 @@ def notificar_todos(mensaje):
             }})
             restantes = LIMITE_GRATUITO - notifs_hoy - 1
             if restantes == 1:
-                enviar_mensaje(chat_id,
+                enviar_mensaje_con_botones(chat_id,
                     f"⚠️ Te queda <b>1 notificación gratuita</b> por hoy.\n\n"
-                    f"¿Quieres alertas ilimitadas?\n"
-                    f"👉 {TU_USUARIO_TELEGRAM}"
+                    f"¿Quieres alertas ilimitadas?",
+                    [[{"text": "⭐ Ver Plan Premium", "callback_data": "premium"}]]
                 )
             elif restantes == 0:
-                enviar_mensaje(chat_id,
+                enviar_mensaje_con_botones(chat_id,
                     f"🔒 <b>Límite diario alcanzado</b>\n\n"
                     f"Plan gratuito: {LIMITE_GRATUITO} alertas por día.\n\n"
-                    f"Para alertas <b>ilimitadas</b> actualiza a Premium:\n"
-                    f"👉 {TU_USUARIO_TELEGRAM}"
+                    f"Actualiza a Premium para alertas ilimitadas:",
+                    [[{"text": "⭐ Quiero Premium", "callback_data": "premium"}]]
                 )
         else:
             print(f"⛔ Usuario {chat_id} alcanzó límite gratuito hoy")
@@ -224,54 +240,70 @@ def manejar_comando(chat_id, texto, nombre, username):
     chat_id_str = str(chat_id)
     texto = texto.strip().lower()
 
+    # ======= COMANDOS PARA TODOS =======
+
     if texto == "/start":
         es_nuevo = registrar_usuario(chat_id, nombre, username)
         if es_nuevo:
-            enviar_mensaje(chat_id,
+            enviar_mensaje_con_botones(chat_id,
                 f"👋 ¡Hola <b>{nombre}</b>! Bienvenido al bot de tarjetas rojas 🟥\n\n"
                 f"Recibirás alertas en tiempo real de expulsiones en las principales ligas del mundo.\n\n"
                 f"🆓 <b>Plan gratuito:</b> {LIMITE_GRATUITO} alertas por día\n"
-                f"⭐ <b>Plan premium:</b> Alertas ilimitadas\n\n"
-                f"Para más info sobre Premium:\n"
-                f"👉 {TU_USUARIO_TELEGRAM}\n\n"
-                f"<b>Comandos:</b>\n"
-                f"/estado — Ver tu plan y notificaciones de hoy\n"
-                f"/pausar — Pausar notificaciones\n"
-                f"/reanudar — Reanudar notificaciones\n"
-                f"/premium — Info sobre plan premium"
+                f"⭐ <b>Plan premium:</b> Alertas ilimitadas",
+                [
+                    [{"text": "📊 Mi estado",      "callback_data": "estado"},
+                     {"text": "⭐ Ver Premium",     "callback_data": "premium"}],
+                    [{"text": "⏸️ Pausar alertas", "callback_data": "pausar"},
+                     {"text": "▶️ Reanudar",       "callback_data": "reanudar"}],
+                    [{"text": "📋 Ayuda",           "callback_data": "ayuda"}],
+                ]
             )
         else:
-            enviar_mensaje(chat_id,
-                f"👋 ¡Hola de nuevo <b>{nombre}</b>! Escribe /estado para ver tu plan.")
+            enviar_mensaje_con_botones(chat_id,
+                f"👋 ¡Hola de nuevo <b>{nombre}</b>!",
+                [
+                    [{"text": "📊 Mi estado",      "callback_data": "estado"},
+                     {"text": "⭐ Ver Premium",     "callback_data": "premium"}],
+                    [{"text": "⏸️ Pausar alertas", "callback_data": "pausar"},
+                     {"text": "▶️ Reanudar",       "callback_data": "reanudar"}],
+                ]
+            )
 
     elif texto == "/ayuda":
-        enviar_mensaje(chat_id,
-            "📋 <b>Comandos disponibles:</b>\n\n"
-            "/estado — Ver tu plan y alertas de hoy\n"
-            "/pausar — Pausar notificaciones\n"
-            "/reanudar — Reanudar notificaciones\n"
-            "/premium — Info sobre plan premium\n"
-            "/ayuda — Ver esta lista"
+        enviar_mensaje_con_botones(chat_id,
+            "📋 <b>¿Qué quieres hacer?</b>",
+            [
+                [{"text": "📊 Mi estado",           "callback_data": "estado"}],
+                [{"text": "⏸️ Pausar alertas",      "callback_data": "pausar"},
+                 {"text": "▶️ Reanudar alertas",    "callback_data": "reanudar"}],
+                [{"text": "⭐ Ver Premium",          "callback_data": "premium"}],
+            ]
         )
 
     elif texto == "/premium":
-        enviar_mensaje(chat_id,
+        enviar_mensaje_con_botones(chat_id,
             f"⭐ <b>Plan Premium</b>\n\n"
             f"✅ {LIMITE_GRATUITO} alertas gratuitas → Ilimitadas\n"
             f"✅ Sin interrupciones\n"
             f"✅ Todas las ligas del mundo\n"
             f"✅ Tarjetas rojas, VAR, goles anulados\n\n"
-            f"Para contratar:\n"
-            f"👉 {TU_USUARIO_TELEGRAM}"
+            f"Para contratar escríbeme directamente:",
+            [[{"text": f"💬 Contactar a {TU_USUARIO_TELEGRAM}", "url": f"https://t.me/{TU_USUARIO_TELEGRAM.replace('@', '')}"}]]
         )
 
     elif texto == "/pausar":
         col.update_one({"chat_id": chat_id_str}, {"$set": {"pausado": True}})
-        enviar_mensaje(chat_id, "⏸️ Notificaciones pausadas. Escribe /reanudar cuando quieras volver.")
+        enviar_mensaje_con_botones(chat_id,
+            "⏸️ Notificaciones pausadas.",
+            [[{"text": "▶️ Reanudar alertas", "callback_data": "reanudar"}]]
+        )
 
     elif texto == "/reanudar":
         col.update_one({"chat_id": chat_id_str}, {"$set": {"pausado": False}})
-        enviar_mensaje(chat_id, "▶️ ¡Notificaciones reactivadas! 🟥")
+        enviar_mensaje_con_botones(chat_id,
+            "▶️ ¡Notificaciones reactivadas! 🟥",
+            [[{"text": "📊 Ver mi estado", "callback_data": "estado"}]]
+        )
 
     elif texto == "/estado":
         u = col.find_one({"chat_id": chat_id_str}) or {}
@@ -281,19 +313,23 @@ def manejar_comando(chat_id, texto, nombre, username):
         total   = u.get("notificaciones_recibidas", 0)
         es_prem = u.get("plan") == "premium" or es_admin(chat_id)
         limite  = "∞" if es_prem else f"{hoy}/{LIMITE_GRATUITO}"
-        enviar_mensaje(chat_id,
+
+        botones = []
+        if not es_prem:
+            botones = [[{"text": "⭐ Quiero Premium", "callback_data": "premium"}]]
+
+        enviar_mensaje_con_botones(chat_id,
             f"📊 <b>Tu estado:</b>\n\n"
             f"Estado: {pausado}\n"
             f"Plan: {plan}\n"
             f"Alertas hoy: {limite}\n"
             f"Total recibidas: {total}\n"
-            f"Miembro desde: {u.get('fecha_registro', 'desconocido')}\n\n"
-            + ("" if es_prem else f"¿Quieres alertas ilimitadas?\n👉 {TU_USUARIO_TELEGRAM}")
+            f"Miembro desde: {u.get('fecha_registro', 'desconocido')}",
+            botones
         )
 
-    # ==========================================
-    # COMANDOS SOLO ADMIN
-    # ==========================================
+    # ======= COMANDOS SOLO ADMIN =======
+
     elif texto == "/usuarios" and es_admin(chat_id):
         total    = col.count_documents({})
         activos  = col.count_documents({"activo": True, "pausado": False})
@@ -370,7 +406,7 @@ def manejar_comando(chat_id, texto, nombre, username):
             )
         else:
             target_id = partes[1]
-            nombre    = partes[2]
+            nombre_ag = partes[2]
             username  = partes[3] if len(partes) > 3 else "sin_username"
             hoy       = datetime.now().strftime("%Y-%m-%d")
             existe = col.find_one({"chat_id": target_id})
@@ -380,7 +416,7 @@ def manejar_comando(chat_id, texto, nombre, username):
             else:
                 col.insert_one({
                     "chat_id": target_id,
-                    "nombre": nombre,
+                    "nombre": nombre_ag,
                     "username": username,
                     "fecha_registro": datetime.now().strftime("%Y-%m-%d %H:%M"),
                     "plan": "gratuito",
@@ -394,15 +430,15 @@ def manejar_comando(chat_id, texto, nombre, username):
                 enviar_mensaje(chat_id,
                     f"✅ Usuario agregado:\n"
                     f"ID: {target_id}\n"
-                    f"Nombre: {nombre}\n"
+                    f"Nombre: {nombre_ag}\n"
                     f"Username: @{username}"
                 )
                 enviar_mensaje(target_id,
-                    f"👋 ¡Hola <b>{nombre}</b>! Tu cuenta fue reactivada en el bot 🟥\n\n"
+                    f"👋 ¡Hola <b>{nombre_ag}</b>! Tu cuenta fue reactivada en el bot 🟥\n\n"
                     f"Ya estás recibiendo alertas nuevamente.\n"
                     f"Escribe /estado para ver tu plan."
                 )
-                
+
     elif texto.startswith("/mensaje ") and es_admin(chat_id):
         contenido = texto.replace("/mensaje ", "", 1)
         todos = list(col.find())
@@ -412,7 +448,27 @@ def manejar_comando(chat_id, texto, nombre, username):
         enviar_mensaje(chat_id, f"✅ Mensaje enviado a {len(todos)} usuarios.")
 
 # ==========================================
-# LEER COMANDOS DE TELEGRAM
+# PROCESAR BOTONES TOCADOS
+# ==========================================
+def responder_boton(callback_query):
+    chat_id     = callback_query["message"]["chat"]["id"]
+    nombre      = callback_query["from"]["first_name"]
+    username    = callback_query["from"].get("username", "")
+    data        = callback_query["data"]
+    callback_id = callback_query["id"]
+
+    # Responder al callback para quitar el "reloj" de Telegram
+    url_answer = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/answerCallbackQuery"
+    try:
+        requests.post(url_answer, json={"callback_query_id": callback_id})
+    except:
+        pass
+
+    # Procesar como si fuera un comando de texto
+    manejar_comando(chat_id, f"/{data}", nombre, username)
+
+# ==========================================
+# LEER COMANDOS Y BOTONES DE TELEGRAM
 # ==========================================
 def obtener_comandos():
     global ultimo_update_id
@@ -423,13 +479,21 @@ def obtener_comandos():
         updates = r.json().get("result", [])
         for update in updates:
             ultimo_update_id = update["update_id"]
-            mensaje  = update.get("message", {})
-            texto    = mensaje.get("text", "")
-            chat_id  = mensaje.get("chat", {}).get("id")
-            nombre   = mensaje.get("from", {}).get("first_name", "Usuario")
-            username = mensaje.get("from", {}).get("username", "")
-            if texto.startswith("/"):
-                manejar_comando(chat_id, texto, nombre, username)
+
+            # Mensaje de texto normal
+            if "message" in update:
+                mensaje  = update["message"]
+                texto    = mensaje.get("text", "")
+                chat_id  = mensaje["chat"]["id"]
+                nombre   = mensaje["from"]["first_name"]
+                username = mensaje["from"].get("username", "")
+                if texto.startswith("/"):
+                    manejar_comando(chat_id, texto, nombre, username)
+
+            # Botón tocado
+            elif "callback_query" in update:
+                responder_boton(update["callback_query"])
+
     except Exception as e:
         print(f"Error leyendo comandos: {e}")
 
@@ -547,9 +611,16 @@ def revisar_tarjetas_rojas(partidos):
 # ==========================================
 def main():
     print("🤖 Bot iniciado.")
+
+    # Registrar admin primero
     registrar_usuario(ADMIN_CHAT_ID, "Admin", "admin")
+
+    # Esperar 3 segundos para asegurar conexión estable con Telegram
+    time.sleep(3)
+
+    # Enviar mensaje de inicio al admin
     enviar_mensaje(ADMIN_CHAT_ID,
-        "✅ <b>Bot iniciado</b>\n\n"
+        "✅ <b>Bot iniciado correctamente</b>\n\n"
         "<b>Comandos de admin:</b>\n"
         "/usuarios — Estadísticas\n"
         "/lista — Ver todos los usuarios\n"
@@ -560,6 +631,7 @@ def main():
         "/agregar [id] [nombre] [user] — Agregar usuario\n"
         "/mensaje [texto] — Broadcast a todos"
     )
+    print(f"✅ Mensaje de inicio enviado al admin {ADMIN_CHAT_ID}")
 
     while True:
         obtener_comandos()
