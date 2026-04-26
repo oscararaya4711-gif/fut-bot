@@ -1,7 +1,6 @@
 import requests
 import time
 import os
-import json
 from datetime import datetime
 from pymongo import MongoClient
 
@@ -14,87 +13,61 @@ API_FOOTBALL_KEY = os.environ.get("API_FOOTBALL_KEY")
 MONGO_URL = os.environ.get("MONGO_URL")
 
 TU_USUARIO_TELEGRAM = "@oaraya555"
-LIMITE_GRATUITO = 15  # ✅ Corregido a 15
+LIMITE_GRATUITO = 15
 
 LIGAS = [
     # ======= UEFA =======
     2, 3, 848,
-
     # ======= INGLATERRA - 5 DIVISIONES =======
     39, 40, 41, 42, 43,
-
     # ======= ESPAÑA =======
     140, 141, 142,
-
     # ======= ALEMANIA =======
     78, 79, 80,
-
     # ======= ITALIA =======
     135, 136, 137,
-
     # ======= FRANCIA =======
     61, 62, 63,
-
     # ======= PORTUGAL =======
     94, 95, 96,
-
     # ======= HOLANDA =======
     88, 89, 90,
-
     # ======= BÉLGICA =======
     144, 145,
-
     # ======= SUIZA =======
     207, 208, 209,
-
     # ======= AUSTRIA =======
     116, 117,
-
     # ======= SUECIA =======
     113, 114, 115,
-
     # ======= NORUEGA =======
     103, 104, 105,
-
     # ======= DINAMARCA =======
     119, 120, 121,
-
     # ======= ESCOCIA =======
     179, 180, 181,
-
     # ======= POLONIA =======
     106, 107, 108,
-
     # ======= TURQUÍA =======
     203, 204, 205,
-
     # ======= GRECIA =======
     197, 198,
-
     # ======= RUSIA =======
     235, 236,
-
     # ======= CROACIA =======
     210, 211,
-
     # ======= SERBIA =======
     286, 287,
-
     # ======= REPÚBLICA CHECA =======
     345, 346,
-
     # ======= HUNGRÍA =======
     373, 374,
-
     # ======= ESLOVAQUIA =======
     382, 383,
-
     # ======= RUMANIA =======
     283, 284,
-
     # ======= UCRANIA =======
-    333, 334,  # ✅ 334 solo aparece aquí, eliminado de Colombia
-
+    333, 334,
     # ======= SUDAMÉRICA =======
     11, 13,
     128, 129, 130,  # Chile
@@ -104,24 +77,19 @@ LIGAS = [
     281, 282,       # Paraguay
     266, 267,       # Perú
     314, 315,       # Ecuador
-    332, 335,       # Colombia 1ª y 2ª  ✅ corregido (335 en vez de 334)
+    332, 335,       # Colombia
     300,            # Bolivia
-
     # ======= NORTEAMÉRICA =======
-    253, 254,   # MLS y USL
-    262, 263,   # Liga MX
-    164,        # Canadian Premier League
-
+    253, 254,
+    262, 263,
+    164,
     # ======= ASIA =======
-    169,        # AFC Champions League
-    292,        # Saudi Pro League
-    307,        # Qatar Stars League
-    268, 269, 270,  # Japón J1/J2/J3
-    293, 294,       # Corea K League 1/2
-    154,            # China Super League
-
+    169, 292, 307,
+    268, 269, 270,
+    293, 294,
+    154,
     # ======= OCEANÍA =======
-    188,        # A-League Australia
+    188,
 ]
 
 tarjetas_notificadas = set()
@@ -215,11 +183,8 @@ def notificar_todos(mensaje):
     usuarios = col.find({"activo": True, "pausado": False})
     for u in usuarios:
         chat_id = u["chat_id"]
-
-        # Resetear contador si es nuevo día
         resetear_si_nuevo_dia(chat_id)
-        u = col.find_one({"chat_id": chat_id})  # Recargar tras posible reset
-
+        u = col.find_one({"chat_id": chat_id})
         es_premium = u.get("plan") == "premium" or chat_id == str(ADMIN_CHAT_ID)
         notifs_hoy = u.get("notificaciones_hoy", 0)
 
@@ -229,7 +194,6 @@ def notificar_todos(mensaje):
                 "notificaciones_recibidas": 1,
                 "notificaciones_hoy": 1
             }})
-
         elif notifs_hoy < LIMITE_GRATUITO:
             enviar_mensaje(chat_id, mensaje)
             col.update_one({"chat_id": chat_id}, {"$inc": {
@@ -237,7 +201,6 @@ def notificar_todos(mensaje):
                 "notificaciones_hoy": 1
             }})
             restantes = LIMITE_GRATUITO - notifs_hoy - 1
-
             if restantes == 1:
                 enviar_mensaje(chat_id,
                     f"⚠️ Te queda <b>1 notificación gratuita</b> por hoy.\n\n"
@@ -278,7 +241,8 @@ def manejar_comando(chat_id, texto, nombre, username):
                 f"/premium — Info sobre plan premium"
             )
         else:
-            enviar_mensaje(chat_id, f"👋 ¡Hola de nuevo <b>{nombre}</b>! Escribe /estado para ver tu plan.")
+            enviar_mensaje(chat_id,
+                f"👋 ¡Hola de nuevo <b>{nombre}</b>! Escribe /estado para ver tu plan.")
 
     elif texto == "/ayuda":
         enviar_mensaje(chat_id,
@@ -291,7 +255,6 @@ def manejar_comando(chat_id, texto, nombre, username):
         )
 
     elif texto == "/premium":
-        # ✅ Solo info, no confunde con el comando admin /premium [id]
         enviar_mensaje(chat_id,
             f"⭐ <b>Plan Premium</b>\n\n"
             f"✅ {LIMITE_GRATUITO} alertas gratuitas → Ilimitadas\n"
@@ -318,7 +281,6 @@ def manejar_comando(chat_id, texto, nombre, username):
         total   = u.get("notificaciones_recibidas", 0)
         es_prem = u.get("plan") == "premium" or es_admin(chat_id)
         limite  = "∞" if es_prem else f"{hoy}/{LIMITE_GRATUITO}"
-
         enviar_mensaje(chat_id,
             f"📊 <b>Tu estado:</b>\n\n"
             f"Estado: {pausado}\n"
@@ -333,10 +295,10 @@ def manejar_comando(chat_id, texto, nombre, username):
     # COMANDOS SOLO ADMIN
     # ==========================================
     elif texto == "/usuarios" and es_admin(chat_id):
-        total   = col.count_documents({})
-        activos = col.count_documents({"activo": True, "pausado": False})
+        total    = col.count_documents({})
+        activos  = col.count_documents({"activo": True, "pausado": False})
         pausados = col.count_documents({"pausado": True})
-        premium = col.count_documents({"plan": "premium"})
+        premium  = col.count_documents({"plan": "premium"})
         enviar_mensaje(chat_id,
             f"📊 <b>Estadísticas:</b>\n\n"
             f"👥 Total usuarios: {total}\n"
@@ -358,7 +320,6 @@ def manejar_comando(chat_id, texto, nombre, username):
         enviar_mensaje(chat_id, msg)
 
     elif texto.startswith("/dar_premium ") and es_admin(chat_id):
-        # ✅ Renombrado a /dar_premium para no chocar con /premium
         target_id = texto.split(" ")[1]
         u = col.find_one({"chat_id": target_id})
         if u:
@@ -377,7 +338,7 @@ def manejar_comando(chat_id, texto, nombre, username):
         u = col.find_one({"chat_id": target_id})
         if u:
             col.update_one({"chat_id": target_id}, {"$set": {"plan": "gratuito"}})
-            enviar_mensaje(chat_id, f"✅ Listo, volvió a plan gratuito.")
+            enviar_mensaje(chat_id, "✅ Listo, volvió a plan gratuito.")
         else:
             enviar_mensaje(chat_id, "❌ Usuario no encontrado.")
 
@@ -398,51 +359,57 @@ def manejar_comando(chat_id, texto, nombre, username):
             enviar_mensaje(chat_id, f"✅ Usuario {target_id} desbloqueado.")
         else:
             enviar_mensaje(chat_id, "❌ Usuario no encontrado.")
-    
-    elif texto.startswith("/agregar ") and es_admin(chat_id):
-    # Uso: /agregar 123456789 Juan usuario_telegram
-    partes = texto.split(" ")
-    if len(partes) < 3:
-        enviar_mensaje(chat_id, 
-            "❌ Formato incorrecto.\n\n"
-            "Uso: /agregar [id] [nombre] [username]\n"
-            "Ejemplo: /agregar 123456789 Juan juanito123"
-        )
-    else:
-        target_id = partes[1]
-        nombre    = partes[2]
-        username  = partes[3] if len(partes) > 3 else "sin_username"
-        hoy       = datetime.now().strftime("%Y-%m-%d")
 
-        existe = col.find_one({"chat_id": target_id})
-        if existe:
-            enviar_mensaje(chat_id, f"⚠️ El usuario {target_id} ya existe en la base de datos.")
-        else:
-            col.insert_one({
-                "chat_id": target_id,
-                "nombre": nombre,
-                "username": username,
-                "fecha_registro": datetime.now().strftime("%Y-%m-%d %H:%M"),
-                "plan": "gratuito",
-                "activo": True,
-                "pausado": False,
-                "notificaciones_recibidas": 0,
-                "notificaciones_hoy": 0,
-                "ultima_actividad": datetime.now().strftime("%Y-%m-%d %H:%M"),
-                "fecha_conteo": hoy,
-            })
-            enviar_mensaje(chat_id, f"✅ Usuario agregado:\nID: {target_id}\nNombre: {nombre}\nUsername: @{username}")
-            enviar_mensaje(target_id,
-                f"👋 ¡Hola <b>{nombre}</b>! Tu cuenta fue reactivada en el bot 🟥\n\n"
-                f"Ya estás recibiendo alertas nuevamente.\n"
-                f"Escribe /estado para ver tu plan."
+    elif texto.startswith("/agregar ") and es_admin(chat_id):
+        # ✅ Indentación corregida — todo dentro del elif
+        partes = texto.split(" ")
+        if len(partes) < 3:
+            enviar_mensaje(chat_id,
+                "❌ Formato incorrecto.\n\n"
+                "Uso: /agregar [id] [nombre] [username]\n"
+                "Ejemplo: /agregar 123456789 Juan juanito123"
             )
-            
+        else:
+            target_id = partes[1]
+            nombre    = partes[2]
+            username  = partes[3] if len(partes) > 3 else "sin_username"
+            hoy       = datetime.now().strftime("%Y-%m-%d")
+            existe = col.find_one({"chat_id": target_id})
+            if existe:
+                enviar_mensaje(chat_id,
+                    f"⚠️ El usuario {target_id} ya existe en la base de datos.")
+            else:
+                col.insert_one({
+                    "chat_id": target_id,
+                    "nombre": nombre,
+                    "username": username,
+                    "fecha_registro": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                    "plan": "gratuito",
+                    "activo": True,
+                    "pausado": False,
+                    "notificaciones_recibidas": 0,
+                    "notificaciones_hoy": 0,
+                    "ultima_actividad": datetime.now().strftime("%Y-%m-%d %H:%M"),
+                    "fecha_conteo": hoy,
+                })
+                enviar_mensaje(chat_id,
+                    f"✅ Usuario agregado:\n"
+                    f"ID: {target_id}\n"
+                    f"Nombre: {nombre}\n"
+                    f"Username: @{username}"
+                )
+                enviar_mensaje(target_id,
+                    f"👋 ¡Hola <b>{nombre}</b>! Tu cuenta fue reactivada en el bot 🟥\n\n"
+                    f"Ya estás recibiendo alertas nuevamente.\n"
+                    f"Escribe /estado para ver tu plan."
+                )
+
     elif texto.startswith("/mensaje ") and es_admin(chat_id):
         contenido = texto.replace("/mensaje ", "", 1)
         todos = list(col.find())
         for u in todos:
-            enviar_mensaje(u["chat_id"], f"📢 <b>Mensaje del administrador:</b>\n\n{contenido}")
+            enviar_mensaje(u["chat_id"],
+                f"📢 <b>Mensaje del administrador:</b>\n\n{contenido}")
         enviar_mensaje(chat_id, f"✅ Mensaje enviado a {len(todos)} usuarios.")
 
 # ==========================================
@@ -504,7 +471,6 @@ def revisar_tarjetas_rojas(partidos):
 
             mensaje = None
 
-            # --- TARJETA ROJA ---
             if tipo_evento == "Card" and detalle == "Red Card":
                 tarjetas_notificadas.add(clave)
                 mensaje = (
@@ -516,7 +482,6 @@ def revisar_tarjetas_rojas(partidos):
                     f"🏃 Equipo: {equipo}"
                 )
 
-            # --- SEGUNDA AMARILLA ---
             elif tipo_evento == "Card" and detalle == "Second Yellow card":
                 tarjetas_notificadas.add(clave)
                 mensaje = (
@@ -528,7 +493,6 @@ def revisar_tarjetas_rojas(partidos):
                     f"🏃 Equipo: {equipo}"
                 )
 
-            # --- GOL ANULADO POR VAR ---
             elif tipo_evento == "Var" and detalle in [
                 "Goal cancelled",
                 "Goal Disallowed - offside",
@@ -552,7 +516,6 @@ def revisar_tarjetas_rojas(partidos):
                     f"📋 Motivo: {razon}"
                 )
 
-            # --- ROJA POR VAR ---
             elif tipo_evento == "Var" and detalle in ["Red card upgrade", "Card upgrade"]:
                 tarjetas_notificadas.add(clave)
                 mensaje = (
@@ -565,7 +528,6 @@ def revisar_tarjetas_rojas(partidos):
                     f"📋 Amarilla cambiada a roja por VAR"
                 )
 
-            # --- PENALTI POR VAR ---
             elif tipo_evento == "Var" and detalle in ["Penalty confirmed", "Penalty cancelled"]:
                 tarjetas_notificadas.add(clave)
                 resultado = "✅ CONFIRMADO" if detalle == "Penalty confirmed" else "❌ ANULADO"
@@ -596,6 +558,7 @@ def main():
         "/quitar_premium [id] — Quitar premium\n"
         "/bloquear [id] — Bloquear usuario\n"
         "/desbloquear [id] — Desbloquear\n"
+        "/agregar [id] [nombre] [user] — Agregar usuario\n"
         "/mensaje [texto] — Broadcast a todos"
     )
 
